@@ -6,7 +6,7 @@ from torchvision import transforms
 
 
 def get_transforms():
-    mean = [0.485, 0.456, 0.406]s
+    mean = [0.485, 0.456, 0.406]
     std = [0.229, 0.224, 0.225]
     train_transforms = transforms.Compose(
         [
@@ -46,3 +46,8 @@ def federated_averaging(w):
             w_avg[k] += w[i][k]
         w_avg[k] = torch.div(w_avg[k], len(w))
     return w_avg
+
+
+def load_config(config_file):
+    with open(config_file, "r") as f:
+        return json.load(f)
