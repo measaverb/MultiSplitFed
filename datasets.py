@@ -1,11 +1,10 @@
 import os
-import pandas as pd
-import numpy as np
-
 from glob import glob
+
+import pandas as pd
 from PIL import Image
-from torch.utils.data import Dataset
 from sklearn.model_selection import train_test_split
+from torch.utils.data import Dataset
 
 from utils import get_transforms
 
@@ -22,10 +21,8 @@ class HAM10000Dataset(Dataset):
         image_path = self.df["path"][idx]
         image = Image.open(image_path)
         label = self.df["target"][idx]
-
         if self.transforms:
             image = self.transforms(image)
-
         return image, label
 
 
@@ -58,3 +55,5 @@ def get_datasets(metadata_path, num_users):
 
     dataset_train = HAM10000Dataset(train, transform=train_transforms)
     dataset_test = HAM10000Dataset(test, transform=test_transforms)
+
+    return dataset_train, dataset_test
