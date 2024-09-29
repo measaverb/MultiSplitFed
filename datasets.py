@@ -19,14 +19,14 @@ class HAM10000Dataset(Dataset):
 
     def __getitem__(self, idx):
         image_path = self.df["path"][idx]
-        image = Image.open(image_path)
+        image = Image.open(image_path).resize((64, 64))
         label = self.df["target"][idx]
         if self.transforms:
             image = self.transforms(image)
         return image, label
 
 
-def get_datasets(metadata_path, num_users):
+def get_dataset(metadata_path):
     df = pd.read_csv(metadata_path)
     lesion_type = {
         "nv": "Melanocytic nevi",
@@ -39,7 +39,7 @@ def get_datasets(metadata_path, num_users):
     }
     imageid_path = {
         os.path.splitext(os.path.basename(x))[0]: x
-        for x in glob(os.path.join("data", "*", "*.jpg"))
+        for x in glob(os.path.join(os.path.dirname(metadata_path), "images", "*.jpg"))
     }
 
     df["path"] = df["image_id"].map(imageid_path.get)
@@ -53,7 +53,7 @@ def get_datasets(metadata_path, num_users):
 
     train_transforms, test_transforms = get_transforms()
 
-    dataset_train = HAM10000Dataset(train, transform=train_transforms)
-    dataset_test = HAM10000Dataset(test, transform=test_transforms)
+    dataset_train = HAM10000Dataset(train, transforms=train_transforms)
+    dataset_test = HAM10000Dataset(test, transforms=test_transforms)
 
     return dataset_train, dataset_test
