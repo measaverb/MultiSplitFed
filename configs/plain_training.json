@@ -1,0 +1,18 @@
+{
+  "experiment": {
+    "work_dir": "./experiment",
+    "random_seed": 42,
+    "wandb_logging": true,
+    "wandb_run": "plain_training"
+  },
+  "data": {
+    "metadata_path": "/data/data/HAM10000/HAM10000_metadata",
+    "batch_size": 256
+  },
+  "training": {
+    "epochs": 200
+  },
+  "networks": {
+    "lr": 0.0001
+  }
+}
