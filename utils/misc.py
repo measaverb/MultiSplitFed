@@ -1,9 +1,39 @@
-import copy
 import json
 
 import numpy as np
 import torch
 from torchvision import transforms
+
+
+def load_config(config_file):
+    with open(config_file, "r") as f:
+        return json.load(f)
+
+
+def random_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    np.random.seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def get_parameters(net):
+    grouped_parameters = [
+        {
+            "params": [p for n, p in net.named_parameters()],
+        }
+    ]
+    return grouped_parameters
+
+
+def get_optimizer(config, net):
+    optimizer = torch.optim.Adam(
+        get_parameters(net),
+        lr=config["networks"]["lr"],
+    )
+    return optimizer
 
 
 def get_transforms():
@@ -29,35 +59,3 @@ def get_transforms():
         ]
     )
     return train_transforms, test_transforms
-
-
-def dataset_iid(dataset, num_users):
-    num_items = int(len(dataset) / num_users)
-    dict_users, all_idxs = {}, [i for i in range(len(dataset))]
-    for i in range(num_users):
-        dict_users[i] = set(np.random.choice(all_idxs, num_items, replace=False))
-        all_idxs = list(set(all_idxs) - dict_users[i])
-    return dict_users
-
-
-def federated_averaging(w):
-    w_avg = copy.deepcopy(w[0])
-    for k in w_avg.keys():
-        for i in range(1, len(w)):
-            w_avg[k] += w[i][k]
-        w_avg[k] = torch.div(w_avg[k], len(w))
-    return w_avg
-
-
-def load_config(config_file):
-    with open(config_file, "r") as f:
-        return json.load(f)
-
-
-def random_seed(seed):
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    np.random.seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False

@@ -14,7 +14,7 @@ class BaseBlock(nn.Module):
     expansion = 1
 
     def __init__(self, input_planes, planes, stride=1, dim_change=None):
-        super(BasicBlock, self).__init__()
+        super(BaseBlock, self).__init__()
         self.conv1 = nn.Conv2d(
             input_planes, planes, stride=stride, kernel_size=3, padding=1
         )
@@ -166,7 +166,7 @@ class ClientSideResNet18(nn.Module):
 
 
 class ServerSideResNet18(nn.Module):
-    def __init__(self, block=BaseBlock, num_layers=(2, 2, 2), classes=2):
+    def __init__(self, block=BaseBlock, num_layers=(2, 2, 2), num_classes=2):
         super(ServerSideResNet18, self).__init__()
         self.input_planes = 64
         self.layer3 = nn.Sequential(
@@ -180,7 +180,7 @@ class ServerSideResNet18(nn.Module):
         self.layer4 = self._layer(block, 128, num_layers[0], stride=2)
         self.layer5 = self._layer(block, 256, num_layers[1], stride=2)
         self.layer6 = self._layer(block, 512, num_layers[2], stride=2)
-        self.fc = nn.Linear(512 * block.expansion, classes)
+        self.fc = nn.Linear(512 * block.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
