@@ -54,7 +54,6 @@ def main(config):
         local_client_weights = []
 
         for idx in idxs_users:
-            print(idx)
             train_dl = torch.utils.data.DataLoader(
                 Shard(train_ds, dict_users_train[idx]),
                 batch_size=config["data"]["batch_size"],
@@ -105,7 +104,6 @@ def main(config):
 
             local_client_weights.append(local_client_nets[idx].state_dict())
 
-        print("Averaging Point")
         global_client_weight = federated_averaging(local_client_weights)
         global_client_net.load_state_dict(global_client_weight)
 
