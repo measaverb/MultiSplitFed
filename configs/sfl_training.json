@@ -2,7 +2,7 @@
   "experiment": {
     "work_dir": "experiment",
     "random_seed": 42,
-    "wandb_logging": false,
+    "wandb_logging": true,
     "wandb_run": "sfl_training"
   },
   "data": {

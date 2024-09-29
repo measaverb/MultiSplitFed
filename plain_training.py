@@ -47,23 +47,22 @@ def main(config):
             running_loss += loss.item()
             step += 1
 
-            if i % 1 == 0:
-                print(
-                    f"Epoch [{epoch}/{config['training']['epochs']}], Step [{i}/{len(train_dl)}], Loss: {loss.item()}"
-                )
-                if config["experiment"]["wandb_logging"]:
-                    wandb.log({"train/step/train_loss": loss.item()}, step=step)
+            print(
+                f"Epoch [{epoch}/{config['training']['epochs']}], Step [{i}/{len(train_dl)}], Loss: {loss.item()}"
+            )
+            if config["experiment"]["wandb_logging"]:
+                wandb.log({"train/step/loss": loss.item()}, step=step)
 
         avg_train_loss = running_loss / len(train_dl)
         print(
             f"Epoch [{epoch}/{config['training']['epochs']}], Train Loss: {avg_train_loss}"
         )
         if config["experiment"]["wandb_logging"]:
-            wandb.log({"train/epoch/train_loss": avg_train_loss})
+            wandb.log({"train/epoch/loss": avg_train_loss})
 
         # Evaluation loop
         net.eval()
-        running_val_loss = 0.0
+        running_test_loss = 0.0
         correct, total = 0, 0
         with torch.no_grad():
             for images, labels in test_dl:
@@ -71,19 +70,19 @@ def main(config):
                 images, labels = images.to(device), labels.to(device)
                 outputs = net(images)
                 loss = criterion(outputs, labels)
-                running_val_loss += loss.item()
+                running_test_loss += loss.item()
                 _, predicted = torch.max(outputs, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
 
             accuracy = correct / total
-            avg_val_loss = running_val_loss / len(test_dl)
+            avg_test_loss = running_test_loss / len(test_dl)
             print(
-                f"Epoch [{epoch}/{config['training']['epochs']}], Accuracy: {accuracy}, Validation Loss: {avg_val_loss}"
+                f"Epoch [{epoch}/{config['training']['epochs']}], Accuracy: {accuracy}, Test Loss: {avg_test_loss}"
             )
             if config["experiment"]["wandb_logging"]:
                 wandb.log(
-                    {"val/epoch/accuracy": accuracy, "val/epoch/val_loss": avg_val_loss}
+                    {"test/epoch/accuracy": accuracy, "test/epoch/loss": avg_test_loss}
                 )
 
 

@@ -72,11 +72,11 @@ def main(config):
                 server_optimizer.zero_grad()
 
                 # local client-side net forward-propagation
-                fx = local_client_nets[idx](images)
-                fx_client = fx.clone().detach().requires_grad_(True)
+                fx_client = local_client_nets[idx](images)
+                fx_client_net = fx_client.clone().detach().requires_grad_(True)
 
                 # server-side net forward-propagation
-                outputs = server_net(fx_client)
+                outputs = server_net(fx_client_net)
                 loss = criterion(outputs, labels)
                 running_loss += loss.item()
 
@@ -86,21 +86,21 @@ def main(config):
                 server_optimizer.step()
 
                 # local client-side net backward-propagation
-                fx.backward(dfx_client)
+                fx_client.backward(dfx_client)
                 local_client_optimizers[idx].step()
 
                 print(
                     f"Epoch [{epoch}/{config['training']['epochs']}], Step [{i}/{len(train_dl)}, Client {idx}], Loss: {loss.item()}"
                 )
                 if config["experiment"]["wandb_logging"]:
-                    wandb.log({f"train/step/client_{idx}/train_loss": loss.item()})
+                    wandb.log({f"train/step/client_{idx}/loss": loss.item()})
 
             avg_train_loss = running_loss / len(train_dl)
             print(
                 f"Epoch [{epoch}/{config['training']['epochs']}], Train Loss: {avg_train_loss}"
             )
             if config["experiment"]["wandb_logging"]:
-                wandb.log({"train/epoch/client_{idx}/train_loss": avg_train_loss})
+                wandb.log({f"train/epoch/client_{idx}/loss": avg_train_loss})
 
             local_client_weights.append(local_client_nets[idx].state_dict())
 
@@ -110,7 +110,7 @@ def main(config):
         # Evaluation loop
         global_client_net.eval()
         server_net.eval()
-        running_val_loss = 0.0
+        running_test_loss = 0.0
         correct, total = 0, 0
         with torch.no_grad():
             for images, labels in test_dl:
@@ -118,34 +118,35 @@ def main(config):
                 images, labels = images.to(device), labels.to(device)
 
                 # local client-side net forward-propagation
-                fx = global_client_net(images)
-                fx_client = fx.clone().detach().requires_grad_(True)
+                client_net_hidden_states = global_client_net(images)
 
                 # server-side net forward-propagation
-                outputs = server_net(fx_client)
+                outputs = server_net(client_net_hidden_states)
 
                 loss = criterion(outputs, labels)
-                running_val_loss += loss.item()
+                running_test_loss += loss.item()
                 _, predicted = torch.max(outputs, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
 
             accuracy = correct / total
-            avg_val_loss = running_val_loss / len(test_dl)
+            avg_test_loss = running_test_loss / len(test_dl)
             print(
-                f"Epoch [{epoch}/{config['training']['epochs']}], Accuracy: {accuracy}, Test Loss: {avg_val_loss}"
+                f"Epoch [{epoch}/{config['training']['epochs']}], Accuracy: {accuracy}, Test Loss: {avg_test_loss}"
             )
             if config["experiment"]["wandb_logging"]:
                 wandb.log(
                     {
                         "test/epoch/accuracy": accuracy,
-                        "test/epoch/val_loss": avg_val_loss,
+                        "test/epoch/loss": avg_test_loss,
                     }
                 )
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="MultiSplitFed: Plain Training")
+    parser = argparse.ArgumentParser(
+        description="MultiSplitFed: Split Federated Learning"
+    )
     parser.add_argument(
         "--config", "-c", required=True, help="Path to the JSON configuration file"
     )
