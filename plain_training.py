@@ -6,7 +6,7 @@ import torch
 import wandb
 from datasets import get_dataset
 from networks import ResNet18
-from utils import load_config, random_seed
+from utils.misc import load_config, random_seed
 
 
 def main(config):

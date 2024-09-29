@@ -6,7 +6,7 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
 
-from utils import get_transforms
+from utils.misc import get_transforms
 
 
 class HAM10000Dataset(Dataset):
