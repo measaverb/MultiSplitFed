@@ -1,4 +1,5 @@
 import copy
+import json
 
 import numpy as np
 import torch
@@ -51,3 +52,12 @@ def federated_averaging(w):
 def load_config(config_file):
     with open(config_file, "r") as f:
         return json.load(f)
+
+
+def random_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    np.random.seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
